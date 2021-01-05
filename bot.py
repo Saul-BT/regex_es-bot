@@ -1,11 +1,10 @@
-
 import os
 import logging
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 from captcha import create_captcha, process_message 
-from regex_utils import test, search
+from regex_utils import test, search, replace
 
 
 def welcome(update, context):
@@ -26,6 +25,7 @@ dispatcher = updater.dispatcher
 # Command Handlers
 dispatcher.add_handler(CommandHandler('test', test))
 dispatcher.add_handler(CommandHandler('search', search))
+dispatcher.add_handler(CommandHandler('replace', replace))
 
 # Message Handlers
 dispatcher.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
