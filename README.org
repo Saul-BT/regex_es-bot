@@ -1,0 +1,18 @@
+#+TITLE: Código fuente de regexes_bot
+
+Bot para el grupo de Expresiones Regulares (Hispano): [[https://t.me/regex_es][regex_es]] (Telegram).
+
+** TO-DO [1/4]
+    - [X] Mensaje de bienvenida
+    - [-] Captcha de bienvenida
+      + [X] Manejo de captchas
+      + [ ] Banear usuario si el captcha no se ha completado
+    - [-] Comandos: [2/3]
+      + [X] =/test /regex/= - Comprueba si un mensaje coincide con un patrón escrito por el usuario.
+      + [X] =/search /regex/= - Subraya todas las coincidencias del patrón dentro de un mensaje.
+      + [-] =/replace /regex/ sustitución= - Reemplaza las coincidencias por un texto dado, haciendo referencia a un mensaje.
+    - [ ] Refactorizar
+    - [ ] Añadir documentación sobre el uso de comandos
+      + [ ] /test
+      + [ ] /search
+      + [ ] /replace
