@@ -69,12 +69,12 @@ def replace(update, context):
 
     if reply:
         command_regex = re.sub(r'^\/\w+\s+', '', update.message.text)
-        # Spliting by the last whitespace character
-        [ command_regex, substitution ] = re.split(r'\s+(?=[^\s]+$)', command_regex)
+        # Spliting by the whitespace character between regex and substitution
+        [ command_regex, substitution ] = re.split(r'(?<=\/)\s+(?=\[.*\]$)', command_regex)
         crafted_regex = get_regex_well_fomatted(command_regex)
         message = "😔 No se encontraron coincidencias, pruebe a reformaular su regex."
 
         if crafted_regex:
-            message = re.sub(crafted_regex, substitution, reply.text)
+            message = re.sub(crafted_regex, substitution[1:-1], reply.text)
 
     context.bot.send_message(chat_id, message, parse_mode='Markdown')
