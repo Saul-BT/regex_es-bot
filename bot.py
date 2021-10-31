@@ -1,8 +1,7 @@
 import os
 import logging
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 from captcha import create_captcha, process_message 
 from regex_utils import test, search, replace
 

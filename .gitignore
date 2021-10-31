@@ -1,6 +1,9 @@
 # Byte-compiled
 __pycache__/
 
+# env
+env/
+
 # Temp files
 *~
 \#*\#

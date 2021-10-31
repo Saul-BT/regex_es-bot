@@ -2,6 +2,8 @@ import re
 import random
 import threading
 
+from regex_utils import RE_REGEXSUB, exec_replace
+
 CAPTCHAS = {}
 REGEXES = [
     r'[rR]eg[eE]xp?( is love)?',
@@ -70,6 +72,7 @@ def get_user_captcha(user_id, chat_id):
 
 def process_message(update, context):
     chat_id = update.effective_chat.id
+    reply = update.message.reply_to_message
     user_id = update.message.from_user.id
     message_id = update.message.message_id
     user_captcha = get_user_captcha(user_id, chat_id)
@@ -86,3 +89,10 @@ def process_message(update, context):
             parse_mode='Markdown',
             reply_to_message_id=message_id
         )
+
+    else:
+        m = re.match(RE_REGEXSUB, update.message.text)
+
+        if m and reply:
+            message = exec_replace(m, reply.text)
+            context.bot.send_message(chat_id, message, parse_mode='Markdown')
