@@ -8,10 +8,16 @@ RE_REGEXSUB = r'^s\/(?P<regex>(?:[^\/]|\\\/)*)\/(?P<substitution>[^\/]*)\/(?P<fl
 
 
 def get_regex_with_flags(regex, flags):
+    count = 1
+
+    if 'g' in flags:
+        count = 0
+        flags = flags.replace('g', '')
+
     if flags:
-        return rf'(?{flags}){regex}'
+        return rf'(?{flags}){regex}', count
     else:
-        return regex
+        return regex, count
 
 
 
@@ -20,14 +26,14 @@ def get_regex_well_fomatted(command_regex):
     m = re.match(RE_REGEX, command_regex)
 
     if m:
-        crafted_regex = get_regex_with_flags(
+        crafted_regex, count = get_regex_with_flags(
             m.group('regex'), m.group('flags'))
 
-    return crafted_regex
+    return crafted_regex, count
 
 
 def get_coincidences(command_regex, target_text):
-    crafted_regex = get_regex_well_fomatted(command_regex)
+    crafted_regex, _ = get_regex_well_fomatted(command_regex)
     if crafted_regex:
         match = re.search(crafted_regex, target_text)
 
@@ -84,11 +90,11 @@ def replace(update, context):
         command_regex = re.sub(RE_COMMAND, '', update.message.text)
         # Spliting by the whitespace character between regex and substitution
         [ command_regex, substitution ] = re.split(r'(?<=\/[mixsua]*)\s+(?=\[.*\]$)', command_regex)
-        crafted_regex = get_regex_well_fomatted(command_regex)
+        crafted_regex, count = get_regex_well_fomatted(command_regex)
         message = "😔 No se encontraron coincidencias, pruebe a reformaular su regex."
 
         if crafted_regex:
-            message = re.sub(crafted_regex, substitution[1:-1], reply.text)
+            message = re.sub(crafted_regex, substitution[1:-1], reply.text, count)
 
     context.bot.send_message(chat_id, message, parse_mode='Markdown')
 
@@ -99,15 +105,6 @@ def exec_replace(matches, text) -> str:
     regex = matches.group('regex')
     substitution = matches.group('substitution')
     flags = matches.group('flags')
-    count = 1
+    crafted_regex, count = get_regex_with_flags(regex, flags)
 
-    if 'g' in flags:
-        count = 0
-        flags = flags.replace('g', '')
-
-    return re.sub(
-        get_regex_with_flags(regex, flags),
-        substitution,
-        text,
-        count
-    )
+    return re.sub(crafted_regex, substitution, text, count)
