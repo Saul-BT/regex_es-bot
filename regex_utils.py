@@ -1,14 +1,27 @@
 import re
 
 
-def get_regex_well_fomatted(command_regex):
-    re_command = r"\/(.*)\/([mixsua]*)"
-    crafted_regex = None
+RE_COMMAND = r'^\/\w+\s+'
+RE_REGEX = r'^\/(?P<regex>(?:[^\/]|\\\/)*)\/(?P<flags>[gmixsua]*)$'
+RE_REGEXSUB = r'^s\/(?P<regex>(?:[^\/]|\\\/)*)\/(?P<substitution>[^\/]*)\/(?P<flags>[gmixsua]*)$'
 
-    if re.search(re_command, command_regex):
-        (regex, flags) = re.match(re_command, command_regex).groups()
-        inline_flags = ''.join(map(lambda c: f'(?{c})', flags))
-        crafted_regex = rf"{inline_flags}{regex}"
+
+
+def get_regex_with_flags(regex, flags):
+    if flags:
+        return rf'(?{flags}){regex}'
+    else:
+        return regex
+
+
+
+def get_regex_well_fomatted(command_regex):
+    crafted_regex = None
+    m = re.match(RE_REGEX, command_regex)
+
+    if m:
+        crafted_regex = get_regex_with_flags(
+            m.group('regex'), m.group('flags'))
 
     return crafted_regex
 
@@ -32,7 +45,7 @@ def test(update, context):
     if reply:
         message = '🔴'
         # Removing command, like /test
-        command_regex = re.sub(r'^\/\w+\s+', '', update.message.text)
+        command_regex = re.sub(RE_COMMAND, '', update.message.text)
         coincidences = get_coincidences(command_regex, reply.text)
         if coincidences: message = '🟢'
 
@@ -46,9 +59,9 @@ def search(update, context):
     message = "🤨 Debe responder a un mensaje para utilizar este comando."
 
     if reply:
-        command_regex = re.sub(r'^\/\w+\s+', '', update.message.text)
+        command_regex = re.sub(RE_COMMAND, '', update.message.text)
         matches = get_coincidences(command_regex, reply.text)
-        message = "😔 No se encontraron coincidencias, pruebe a reformaular su regex."
+        message = "😔 No se encontraron coincidencias, pruebe a reformular su regex."
 
         if matches:
             message = reply.text
@@ -68,9 +81,9 @@ def replace(update, context):
     message = "🤨 Debe responder a un mensaje para utilizar este comando."
 
     if reply:
-        command_regex = re.sub(r'^\/\w+\s+', '', update.message.text)
+        command_regex = re.sub(RE_COMMAND, '', update.message.text)
         # Spliting by the whitespace character between regex and substitution
-        [ command_regex, substitution ] = re.split(r'(?<=\/)\s+(?=\[.*\]$)', command_regex)
+        [ command_regex, substitution ] = re.split(r'(?<=\/[mixsua]*)\s+(?=\[.*\]$)', command_regex)
         crafted_regex = get_regex_well_fomatted(command_regex)
         message = "😔 No se encontraron coincidencias, pruebe a reformaular su regex."
 
@@ -78,3 +91,23 @@ def replace(update, context):
             message = re.sub(crafted_regex, substitution[1:-1], reply.text)
 
     context.bot.send_message(chat_id, message, parse_mode='Markdown')
+
+
+
+
+def exec_replace(matches, text) -> str:
+    regex = matches.group('regex')
+    substitution = matches.group('substitution')
+    flags = matches.group('flags')
+    count = 1
+
+    if 'g' in flags:
+        count = 0
+        flags = flags.replace('g', '')
+
+    return re.sub(
+        get_regex_with_flags(regex, flags),
+        substitution,
+        text,
+        count
+    )
